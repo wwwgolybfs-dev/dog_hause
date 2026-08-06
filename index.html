@@ -1018,20 +1018,22 @@
         }
         const { data, error } = await sb
           .from('player_ratings')
-          .select('points')
-          .eq('telegram_id', tgUserId)
+          .select('total_score')
+          .eq('telegram_user_id', tgUserId)
           .maybeSingle();
 
         if (error) throw error;
-        if (data && typeof data.points === 'number') {
-          credit = Math.floor(data.points);
+        if (data && typeof data.total_score === 'number') {
+          credit = Math.floor(data.total_score);
         } else {
           // Создаём запись
           credit = 10000;
           await sb.from('player_ratings').upsert({
-            telegram_id: tgUserId,
-            points: credit
-          }, { onConflict: 'telegram_id' });
+            telegram_user_id: tgUserId,
+            total_score: credit,
+            name: 'Игрок',
+            games_played: 0
+          }, { onConflict: 'telegram_user_id' });
         }
         balanceLoaded = true;
         updateBalanceUI();
@@ -1054,8 +1056,8 @@
         // Обновление очков
         const { error: upErr } = await sb
           .from('player_ratings')
-          .update({ points: Math.floor(credit) })
-          .eq('telegram_id', tgUserId);
+          .update({ total_score: Math.floor(credit), updated_at: new Date().toISOString() })
+          .eq('telegram_user_id', tgUserId);
         if (upErr) throw upErr;
 
         // История спинов

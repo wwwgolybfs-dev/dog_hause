@@ -3,20 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>The Dog House — Test</title>
+  <title>Домик собак — Слот</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    :root {
-      --green-panel: #2e8b3a;
-      --green-dark: #1e6b2a;
-      --wood: #c47a3a;
-      --wood-dark: #8b4a1a;
-      --sky: #87CEEB;
-      --grass: #4CAF50;
-      --reel-bg: #1a3a5c;
-      --gold: #ffd700;
-    }
-
     * {
       margin: 0;
       padding: 0;
@@ -27,7 +17,7 @@
 
     body {
       background: #0a1a0a;
-      font-family: 'Segoe UI', Arial, sans-serif;
+      font-family: 'Segoe UI', system-ui, Arial, sans-serif;
       display: flex;
       justify-content: center;
       align-items: flex-start;
@@ -48,8 +38,6 @@
       box-shadow: 0 0 30px rgba(0,0,0,0.5);
     }
 
-
-
     .header {
       position: relative;
       z-index: 10;
@@ -57,16 +45,16 @@
       padding-top: 10px;
     }
     .win-banner {
-      font-size: 17px;
+      font-size: 15px;
       font-weight: 900;
       color: #ff9a00;
       text-shadow: 0 2px 0 #c06000, 0 0 12px rgba(255,180,0,0.6);
-      letter-spacing: 0.5px;
+      letter-spacing: 0.3px;
       margin-bottom: 4px;
     }
     .win-banner span {
       color: #ffd700;
-      font-size: 20px;
+      font-size: 18px;
     }
 
     .dogs-row {
@@ -77,14 +65,14 @@
       margin-bottom: -6px;
       position: relative;
       z-index: 15;
-      height: 70px;
+      height: 66px;
     }
     .dog-head {
-      height: 62px;
+      height: 58px;
       width: auto;
       filter: drop-shadow(0 3px 5px rgba(0,0,0,0.3));
     }
-    .dog-head.rott { height: 68px; }
+    .dog-head.rott { height: 64px; }
 
     .house {
       position: relative;
@@ -109,7 +97,7 @@
     }
     .logo-bar img {
       max-width: 100%;
-      height: 36px;
+      height: 34px;
     }
 
     .reels-area {
@@ -190,19 +178,20 @@
       z-index: 2;
     }
 
-    .symbol.win-highlight {
-      animation: winPulse 0.5s ease-in-out infinite alternate;
-      z-index: 2;
+    .symbol.bonus-hold {
+      box-shadow: inset 0 0 20px rgba(255,80,150,0.7), 0 0 12px rgba(255,100,160,0.5);
+      animation: bonusHoldPulse 0.8s ease-in-out infinite alternate;
+      z-index: 3;
     }
-    @keyframes winPulse {
-      from { box-shadow: inset 0 0 15px rgba(255,215,0,0.4); }
-      to { box-shadow: inset 0 0 25px rgba(255,180,0,0.8); background-color: rgba(255,200,0,0.2); }
+    @keyframes bonusHoldPulse {
+      from { box-shadow: inset 0 0 15px rgba(255,80,150,0.5); }
+      to { box-shadow: inset 0 0 28px rgba(255,120,180,0.9), 0 0 16px rgba(255,100,160,0.6); }
     }
 
     .fence {
       position: relative;
       z-index: 8;
-      height: 32px;
+      height: 28px;
       background: repeating-linear-gradient(
         90deg,
         #f5f0e0 0px,
@@ -217,8 +206,8 @@
     .fence::before {
       content: '';
       position: absolute;
-      top: -6px; left: 0; right: 0;
-      height: 6px;
+      top: -5px; left: 0; right: 0;
+      height: 5px;
       background: #e8e0c8;
     }
 
@@ -246,6 +235,7 @@
       color: #c8f0c8;
       font-size: 10px;
       display: block;
+      letter-spacing: 0.3px;
     }
     .bal-item .value {
       color: #ffd700;
@@ -255,7 +245,7 @@
     .win-display {
       text-align: center;
       flex: 1;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 800;
       color: #fff;
       min-height: 20px;
@@ -265,7 +255,7 @@
       animation: winText 0.5s ease;
     }
     @keyframes winText {
-      0% { transform: scale(1.3); }
+      0% { transform: scale(1.25); }
       100% { transform: scale(1); }
     }
 
@@ -280,10 +270,10 @@
       width: 42px;
       height: 42px;
       border-radius: 50%;
-      border: 3px solid rgba(255,255,255,0.3);
+      border: 3px solid rgba(255,255,255,0.35);
       background: linear-gradient(180deg, #4a9a5a, #2a6a3a);
       color: #fff;
-      font-size: 17px;
+      font-size: 16px;
       font-weight: bold;
       display: flex;
       align-items: center;
@@ -353,7 +343,7 @@
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.75);
+      background: rgba(0,0,0,0.78);
       z-index: 100;
       display: none;
       align-items: center;
@@ -438,10 +428,10 @@
       background: #1a1a28;
       border: 2px solid #4a4a6a;
       border-radius: 8px;
-      padding: 7px 14px;
-      min-width: 80px;
+      padding: 7px 12px;
+      min-width: 90px;
       text-align: center;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 700;
       color: #fff;
     }
@@ -476,7 +466,7 @@
     .fs-overlay {
       position: absolute;
       inset: 0;
-      background: rgba(0,0,0,0.88);
+      background: rgba(0,0,0,0.72);
       z-index: 50;
       display: none;
       flex-direction: column;
@@ -488,17 +478,17 @@
       display: flex;
     }
     .fs-title {
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 900;
       color: #ffd700;
-      margin-bottom: 14px;
+      margin-bottom: 10px;
       text-shadow: 0 0 15px rgba(255,200,0,0.5);
     }
     .fs-grid {
       display: grid;
       grid-template-columns: repeat(3, 64px);
       gap: 7px;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
     .fs-cell {
       width: 64px;
@@ -521,10 +511,17 @@
       transform: scale(1);
     }
     .fs-total {
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 800;
       color: #fff;
+      margin-top: 4px;
+    }
+    .fs-bonus-hint {
+      font-size: 11px;
+      color: #ffb0d0;
       margin-top: 6px;
+      text-align: center;
+      max-width: 260px;
     }
 
     .status-bar {
@@ -586,7 +583,7 @@
       bottom: 100px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(0,0,0,0.85);
+      background: rgba(0,0,0,0.88);
       color: #ffd700;
       padding: 10px 18px;
       border-radius: 20px;
@@ -597,36 +594,55 @@
       transition: opacity 0.3s;
       pointer-events: none;
       white-space: nowrap;
+      max-width: 90%;
     }
     .toast.show {
       opacity: 1;
+    }
+
+    .loading-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 80;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      color: #ffd700;
+    }
+    .loading-overlay.show {
+      display: flex;
     }
   </style>
 </head>
 <body>
   <div class="game-wrapper" id="game">
-    <div class="fs-counter" id="fsCounter">FREE SPINS: 0</div>
+    <div class="fs-counter" id="fsCounter">ФРИСПИНЫ: 0</div>
+    <div class="loading-overlay" id="loadingOverlay">Загрузка...</div>
 
     <div class="header">
-      <div class="win-banner">WIN UP TO <span>6,750</span> X BET</div>
+      <div class="win-banner">ВЫИГРЫШ ДО <span>6 750</span> × СТАВКА</div>
       <div class="dogs-row">
-        <img class="dog-head" src="./assets/interface/dog-pug.svg" alt="Pug" />
-        <img class="dog-head rott" src="./assets/interface/dog-rott.svg" alt="Rottweiler" />
-        <img class="dog-head" src="./assets/interface/dog-york.svg" alt="Yorkshire" />
-        <img class="dog-head" src="./assets/interface/dog-beagle.svg" alt="Beagle" />
+        <img class="dog-head" src="./assets/interface/dog-pug.svg" alt="Мопс" />
+        <img class="dog-head rott" src="./assets/interface/dog-rott.svg" alt="Ротвейлер" />
+        <img class="dog-head" src="./assets/interface/dog-york.svg" alt="Йорк" />
+        <img class="dog-head" src="./assets/interface/dog-beagle.svg" alt="Бигль" />
       </div>
     </div>
 
     <div class="house">
       <div class="logo-bar">
-        <img src="./assets/interface/logo.svg" alt="THE DOG HOUSE" />
+        <img src="./assets/interface/logo.svg" alt="ДОМИК СОБАК" />
       </div>
       <div class="reels-area">
         <div class="reels-frame" id="reelsFrame"></div>
         <div class="fs-overlay" id="fsOverlay">
-          <div class="fs-title">FREE SPINS</div>
+          <div class="fs-title">🎁 БЕСПЛАТНЫЕ ВРАЩЕНИЯ</div>
           <div class="fs-grid" id="fsGrid"></div>
-          <div class="fs-total" id="fsTotal">Total: 0</div>
+          <div class="fs-total" id="fsTotal">Итого: 0</div>
+          <div class="fs-bonus-hint">Бонусные символы остаются на барабанах</div>
         </div>
       </div>
     </div>
@@ -634,127 +650,119 @@
     <div class="fence"></div>
 
     <div class="controls">
-      <div class="status-bar" id="statusBar">Place your bets!</div>
+      <div class="status-bar" id="statusBar">Сделайте ставку!</div>
       <div class="balance-row">
         <div class="bal-item">
-          <span class="label">CREDIT</span>
-          <span class="value" id="creditDisplay">$100.00</span>
+          <span class="label">ОЧКИ</span>
+          <span class="value" id="creditDisplay">0</span>
         </div>
         <div class="win-display" id="winDisplay"></div>
         <div class="bal-item" style="text-align:right">
-          <span class="label">BET</span>
-          <span class="value" id="betDisplay">$2.00</span>
+          <span class="label">СТАВКА</span>
+          <span class="value" id="betDisplay">100</span>
         </div>
       </div>
       <div class="buttons-row">
-        <button class="btn" id="btnInfo" title="Info">i</button>
-        <button class="btn" id="btnAuto" title="Autoplay">></button>
-        <button class="spin-btn" id="btnSpin" title="Spin">
-          <img src="./assets/interface/spin.svg" alt="SPIN" />
+        <button class="btn" id="btnInfo" title="Правила">ℹ</button>
+        <button class="btn" id="btnAuto" title="Автоигра">▶</button>
+        <button class="spin-btn" id="btnSpin" title="Крутить">
+          <img src="./assets/interface/spin.svg" alt="Крутить" />
         </button>
-        <button class="btn" id="btnBet" title="Bet">$</button>
-        <button class="btn" id="btnMenu" title="Menu">=</button>
+        <button class="btn" id="btnBet" title="Ставка">🪙</button>
+        <button class="btn" id="btnMenu" title="Меню">☰</button>
       </div>
     </div>
   </div>
 
   <div class="toast" id="toast"></div>
 
+  <!-- Правила -->
   <div class="modal-overlay" id="modalInfo">
     <div class="modal">
       <div class="modal-header">
-        GAME RULES
-        <button class="modal-close" data-close="modalInfo">X</button>
+        ПРАВИЛА ИГРЫ
+        <button class="modal-close" data-close="modalInfo">✕</button>
       </div>
       <div class="modal-body">
-        <h3>Symbols & Pays (at $1 total bet)</h3>
+        <h3>Символы и выплаты (за 1 очко ставки)</h3>
         <div class="pay-row">
           <div class="pay-sym"><img src="./assets/symbols/rott.svg" alt=""></div>
-          <div class="pay-vals">Rottweiler — 5: $75 · 4: $15 · 3: $5</div>
+          <div class="pay-vals">Ротвейлер — 5: 75 · 4: 15 · 3: 5</div>
         </div>
         <div class="pay-row">
           <div class="pay-sym"><img src="./assets/symbols/york.svg" alt=""></div>
-          <div class="pay-vals">Yorkshire — 5: $50 · 4: $10 · 3: $3.5</div>
+          <div class="pay-vals">Йоркшир — 5: 50 · 4: 10 · 3: 3.5</div>
         </div>
         <div class="pay-row">
           <div class="pay-sym"><img src="./assets/symbols/pug.svg" alt=""></div>
-          <div class="pay-vals">Pug — 5: $30 · 4: $6 · 3: $2.5</div>
+          <div class="pay-vals">Мопс — 5: 30 · 4: 6 · 3: 2.5</div>
         </div>
         <div class="pay-row">
           <div class="pay-sym"><img src="./assets/symbols/beagle.svg" alt=""></div>
-          <div class="pay-vals">Beagle — 5: $20 · 4: $4 · 3: $2</div>
+          <div class="pay-vals">Бигль — 5: 20 · 4: 4 · 3: 2</div>
         </div>
         <div class="pay-row">
           <div class="pay-sym"><img src="./assets/symbols/collar.svg" alt=""></div>
-          <div class="pay-vals">Collar — 5: $15 · 4: $2.5 · 3: $1.2</div>
+          <div class="pay-vals">Ошейник — 5: 15 · 4: 2.5 · 3: 1.2</div>
         </div>
         <div class="pay-row">
           <div class="pay-sym"><img src="./assets/symbols/bone.svg" alt=""></div>
-          <div class="pay-vals">Bone — 5: $10 · 4: $2 · 3: $0.8</div>
+          <div class="pay-vals">Кость — 5: 10 · 4: 2 · 3: 0.8</div>
         </div>
         <div class="pay-row">
           <div class="pay-sym"><img src="./assets/symbols/a.svg" alt=""></div>
-          <div class="pay-vals">A / K — 5: $5 · 4: $1 · 3: $0.5</div>
+          <div class="pay-vals">A / K — 5: 5 · 4: 1 · 3: 0.5</div>
         </div>
         <div class="pay-row">
           <div class="pay-sym"><img src="./assets/symbols/q.svg" alt=""></div>
-          <div class="pay-vals">Q / J / 10 — 5: $2.5 · 4: $0.5 · 3: $0.2</div>
+          <div class="pay-vals">Q / J / 10 — 5: 2.5 · 4: 0.5 · 3: 0.2</div>
         </div>
-        <h3>WILD <img src="./assets/symbols/wild.svg" alt="" style="width:28px;height:28px;vertical-align:middle"></h3>
-        <p>Appears only on reels 2, 3, 4. Substitutes for all except BONUS. Each Wild gets a random multiplier 2x or 3x. Multiple Wilds on a payline add their multipliers.</p>
-        <h3>BONUS <img src="./assets/symbols/bonus.svg" alt="" style="width:28px;height:28px;vertical-align:middle"></h3>
-        <p>Appears only on reels 1, 3, 5. 3 BONUS symbols trigger Free Spins. Pays 5x total bet.</p>
-        <h3>FREE SPINS</h3>
-        <p>3x3 grid reveals numbers 1-3. Total free spins = sum (usually 9-27). During FS: Wilds on reels 2-4 become sticky with fixed multiplier. No BONUS symbols. Feature cannot be retriggered.</p>
-        <p style="margin-top:12px;color:#888;font-size:11px">RTP 96.51% · High Volatility · 20 fixed lines · Min bet $0.20 · Max $240</p>
+        <h3>ДИКИЙ <img src="./assets/symbols/wild.svg" alt="" style="width:28px;height:28px;vertical-align:middle"></h3>
+        <p>Только на барабанах 2, 3 и 4. Заменяет все символы, кроме БОНУСА. Каждому дикому даётся множитель 2× или 3×. Несколько диких на линии складывают множители.</p>
+        <h3>БОНУС <img src="./assets/symbols/bonus.svg" alt="" style="width:28px;height:28px;vertical-align:middle"></h3>
+        <p>Только на барабанах 1, 3 и 5. Три бонуса запускают бесплатные вращения. Выплата 5× от ставки.</p>
+        <h3>БЕСПЛАТНЫЕ ВРАЩЕНИЯ</h3>
+        <p>Сетка 3×3 открывает числа 1–3. Сумма = число фриспинов (обычно 9–27). Во время фриспинов дикие на барабанах 2–4 становятся липкими с фиксированным множителем. Бонусные символы не выпадают. Повторный запуск невозможен.</p>
+        <p style="margin-top:12px;color:#888;font-size:11px">RTP 96.51% · Высокая волатильность · 20 линий · Мин. ставка 100 · Макс. 50 000</p>
       </div>
     </div>
   </div>
 
+  <!-- Ставка -->
   <div class="modal-overlay" id="modalBet">
     <div class="modal">
       <div class="modal-header">
-        BETTING ON 20 LINES
-        <button class="modal-close" data-close="modalBet">X</button>
+        СТАВКА НА 20 ЛИНИЙ
+        <button class="modal-close" data-close="modalBet">✕</button>
       </div>
       <div class="modal-body">
         <div class="bet-controls">
           <div class="bet-row">
-            <label>COINS PER LINE</label>
-            <button class="bet-btn" id="cplMinus">-</button>
-            <div class="bet-value-box" id="cplValue">1</div>
-            <button class="bet-btn" id="cplPlus">+</button>
+            <label>СТАВКА</label>
+            <button class="bet-btn" id="betMinus">−</button>
+            <div class="bet-value-box" id="betValueBox">100</div>
+            <button class="bet-btn" id="betPlus">+</button>
           </div>
-          <div class="bet-row">
-            <label>COIN VALUE</label>
-            <button class="bet-btn" id="cvMinus">-</button>
-            <div class="bet-value-box" id="cvValue">$0.10</div>
-            <button class="bet-btn" id="cvPlus">+</button>
-          </div>
-          <div class="bet-row">
-            <label>TOTAL BET</label>
-            <button class="bet-btn" id="tbMinus">-</button>
-            <div class="bet-value-box" id="tbValue">$2.00</div>
-            <button class="bet-btn" id="tbPlus">+</button>
-          </div>
-          <button class="bet-max" id="betMax">BET MAX</button>
+          <button class="bet-max" id="betMax">МАКС. СТАВКА</button>
+          <p style="font-size:11px;color:#888;margin-top:8px;text-align:center">Мин. 100 · Макс. 50 000 очков</p>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- Меню -->
   <div class="modal-overlay" id="modalMenu">
     <div class="modal">
       <div class="modal-header">
-        SYSTEM SETTINGS
-        <button class="modal-close" data-close="modalMenu">X</button>
+        НАСТРОЙКИ
+        <button class="modal-close" data-close="modalMenu">✕</button>
       </div>
       <div class="modal-body">
-        <h3>GENERAL SETTINGS</h3>
+        <h3>ОБЩИЕ</h3>
         <div style="display:flex;justify-content:space-between;align-items:center;margin:10px 0">
           <div>
-            <div style="font-weight:700">SOUND</div>
-            <div style="font-size:11px;color:#888">Turn sound off or on</div>
+            <div style="font-weight:700">ЗВУК</div>
+            <div style="font-size:11px;color:#888">Включить или выключить</div>
           </div>
           <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
             <input type="checkbox" id="chkSound" checked style="width:40px;height:22px;accent-color:#2e8b3a" />
@@ -762,8 +770,8 @@
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin:10px 0">
           <div>
-            <div style="font-weight:700">VIBRATION</div>
-            <div style="font-size:11px;color:#888">Haptic feedback</div>
+            <div style="font-weight:700">ВИБРАЦИЯ</div>
+            <div style="font-size:11px;color:#888">Тактильный отклик</div>
           </div>
           <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
             <input type="checkbox" id="chkVib" checked style="width:40px;height:22px;accent-color:#2e8b3a" />
@@ -771,35 +779,59 @@
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin:10px 0">
           <div>
-            <div style="font-weight:700">TURBO SPIN</div>
-            <div style="font-size:11px;color:#888">Faster reel stop</div>
+            <div style="font-weight:700">ТУРБО</div>
+            <div style="font-size:11px;color:#888">Быстрая остановка барабанов</div>
           </div>
           <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
             <input type="checkbox" id="chkTurbo" style="width:40px;height:22px;accent-color:#2e8b3a" />
           </label>
         </div>
-        <h3 style="margin-top:16px">ABOUT</h3>
-        <p style="color:#888;font-size:12px">The Dog House — HTML test emulator<br>Pragmatic Play inspired · 20 lines · RTP 96.51%<br>Telegram Mini App ready</p>
+        <h3 style="margin-top:16px">О ИГРЕ</h3>
+        <p style="color:#888;font-size:12px">Домик собак — HTML-эмулятор<br>20 линий · RTP 96.51%<br>Telegram Mini App</p>
       </div>
     </div>
   </div>
 
   <script>
+    // ============================================================
+    // ДОМИК СОБАК — слот с Supabase
+    // ============================================================
+
+    // --- Supabase (замените на свои ключи) ---
+    const SUPABASE_URL = 'https://heubrattlnikielnfheg.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhldWJyYXR0bG5pa2llbG5maGVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ5NzYyMjcsImV4cCI6MjEwMDU1MjIyN30._lRs77YnsILFN_Ru4uR2wDWQFtAlazZh8UaaKa7fsnM';
+
+    let sb = null;
+    try {
+      if (window.supabase && SUPABASE_URL.indexOf('YOUR_PROJECT') === -1) {
+        sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      }
+    } catch (e) {
+      console.warn('Supabase init error', e);
+    }
+
+    // --- Telegram ---
+    let tgUserId = null;
     if (window.Telegram && Telegram.WebApp) {
       Telegram.WebApp.ready();
       Telegram.WebApp.expand();
-      try { Telegram.WebApp.setHeaderColor('#2e8b3a'); } catch(e){}
+      try { Telegram.WebApp.setHeaderColor('#2e8b3a'); } catch (e) {}
+      const u = Telegram.WebApp.initDataUnsafe && Telegram.WebApp.initDataUnsafe.user;
+      if (u && u.id) tgUserId = String(u.id);
     }
+    if (!tgUserId) tgUserId = 'demo_' + Math.floor(Math.random() * 1e9);
 
-    function haptic(type = 'success') {
-      if (!document.getElementById('chkVib')?.checked) return;
+    function haptic(type) {
+      type = type || 'success';
+      if (!document.getElementById('chkVib') || !document.getElementById('chkVib').checked) return;
       try {
-        if (window.Telegram?.WebApp?.HapticFeedback) {
+        if (window.Telegram && Telegram.WebApp && Telegram.WebApp.HapticFeedback) {
           Telegram.WebApp.HapticFeedback.notificationOccurred(type);
         }
-      } catch(e) {}
+      } catch (e) {}
     }
 
+    // --- Ассеты ---
     const ASSETS = {
       ROTT:  './assets/symbols/rott.svg',
       YORK:  './assets/symbols/york.svg',
@@ -813,7 +845,7 @@
       J:     './assets/symbols/j.svg',
       TEN:   './assets/symbols/ten.svg',
       WILD:  './assets/symbols/wild.svg',
-      BONUS: './assets/symbols/bonus.svg',
+      BONUS: './assets/symbols/bonus.svg'
     };
 
     const SYMBOLS = {
@@ -829,7 +861,7 @@
       J:     { id: 'J',     pays: {3:0.2, 4:0.5, 5:2.5} },
       TEN:   { id: 'TEN',   pays: {3:0.2, 4:0.5, 5:2.5} },
       WILD:  { id: 'WILD',  pays: {} },
-      BONUS: { id: 'BONUS', pays: {} },
+      BONUS: { id: 'BONUS', pays: {} }
     };
 
     const BASE_STRIP = [
@@ -838,7 +870,7 @@
       'YORK','PUG','BEAG','COLL','BONE','A','Q','J','TEN',
       'ROTT','YORK','BEAG','COLL','BONE','A','K','Q','J',
       'PUG','BEAG','COLL','BONE','A','K','Q','J','TEN',
-      'ROTT','YORK','PUG','COLL','BONE','A','K','Q','J','TEN',
+      'ROTT','YORK','PUG','COLL','BONE','A','K','Q','J','TEN'
     ];
 
     const PAYLINES = [
@@ -848,19 +880,25 @@
       [0,1,1,1,0], [2,1,1,1,2], [1,0,1,2,1],
       [1,2,1,0,1], [0,1,0,1,0], [2,1,2,1,2],
       [1,1,0,1,1], [1,1,2,1,1], [0,0,1,0,0],
-      [2,2,1,2,2], [0,2,0,2,0],
+      [2,2,1,2,2], [0,2,0,2,0]
     ];
 
-    let credit = 100.00;
-    let coinsPerLine = 1;
-    let coinValue = 0.10;
-    let totalBet = 2.00;
+    // Шаги ставки (очки), макс 50000
+    const BET_STEPS = [100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000];
+    const MIN_BET = 100;
+    const MAX_BET = 50000;
+
+    // Состояние
+    let credit = 0;
+    let totalBet = 100;
     let spinning = false;
     let freeSpinsLeft = 0;
     let inFreeSpins = false;
     let stickyWilds = {};
     let currentGrid = [];
     let turbo = false;
+    let balanceLoaded = false;
+    let heldBonusPositions = []; // [{reel, row}]
 
     const REEL_COUNT = 5;
     const ROWS = 3;
@@ -875,9 +913,14 @@
     const fsCounter = document.getElementById('fsCounter');
     const fsOverlay = document.getElementById('fsOverlay');
     const toastEl = document.getElementById('toast');
+    const loadingOverlay = document.getElementById('loadingOverlay');
 
     const reelElements = [];
     const reelInners = [];
+
+    function formatPoints(n) {
+      return Math.floor(n).toLocaleString('ru-RU');
+    }
 
     function buildReels() {
       reelsFrame.innerHTML = '';
@@ -899,7 +942,7 @@
       }
     }
 
-    function createSymbolEl(symId, reelIdx, mult = null, isSticky = false) {
+    function createSymbolEl(symId, reelIdx, mult, isSticky, isBonusHold) {
       const el = document.createElement('div');
       el.className = 'symbol';
       el.dataset.sym = symId;
@@ -914,67 +957,147 @@
         const m = mult || (Math.random() < 0.5 ? 2 : 3);
         const badge = document.createElement('span');
         badge.className = 'mult';
-        badge.textContent = m + 'X';
+        badge.textContent = m + '×';
         el.appendChild(badge);
         el.dataset.mult = m;
         if (isSticky) {
           const st = document.createElement('span');
           st.className = 'sticky-badge';
-          st.textContent = 'STICKY';
+          st.textContent = 'ЛИПКИЙ';
           el.appendChild(st);
         }
+      }
+      if (isBonusHold || (symId === 'BONUS' && isBonusHold !== false && heldBonusPositions.length)) {
+        // marked later
       }
       return el;
     }
 
-    function randomSymbol(reelIdx, forFS = false) {
-      if ((reelIdx === 0 || reelIdx === 2 || reelIdx === 4) && !forFS && Math.random() < 0.08) {
+    // Шанс бонуса снижен: ~3.5% на допустимых барабанах
+    function randomSymbol(reelIdx, forFS) {
+      if ((reelIdx === 0 || reelIdx === 2 || reelIdx === 4) && !forFS && Math.random() < 0.035) {
         return 'BONUS';
       }
-      if (reelIdx >= 1 && reelIdx <= 3 && Math.random() < 0.12) {
+      if (reelIdx >= 1 && reelIdx <= 3 && Math.random() < 0.11) {
         return 'WILD';
       }
       return BASE_STRIP[Math.floor(Math.random() * BASE_STRIP.length)];
     }
 
     function updateBalanceUI() {
-      creditDisplay.textContent = '$' + credit.toFixed(2);
-      betDisplay.textContent = '$' + totalBet.toFixed(2);
-      document.getElementById('cplValue').textContent = coinsPerLine;
-      document.getElementById('cvValue').textContent = '$' + coinValue.toFixed(2);
-      document.getElementById('tbValue').textContent = '$' + totalBet.toFixed(2);
+      creditDisplay.textContent = formatPoints(credit);
+      betDisplay.textContent = formatPoints(totalBet);
+      const box = document.getElementById('betValueBox');
+      if (box) box.textContent = formatPoints(totalBet);
     }
 
     function setStatus(msg) {
       statusBar.textContent = msg;
     }
 
-    function showToast(msg, ms = 2000) {
+    function showToast(msg, ms) {
+      ms = ms || 2200;
       toastEl.textContent = msg;
       toastEl.classList.add('show');
-      setTimeout(() => toastEl.classList.remove('show'), ms);
+      setTimeout(function () { toastEl.classList.remove('show'); }, ms);
     }
 
-    function recalcBet() {
-      totalBet = +(20 * coinsPerLine * coinValue).toFixed(2);
-      updateBalanceUI();
+    // --- Supabase: баланс ---
+    async function loadBalance() {
+      loadingOverlay.classList.add('show');
+      loadingOverlay.textContent = 'Загрузка баланса...';
+      try {
+        if (!sb) {
+          // Демо-режим без БД
+          credit = 100000;
+          balanceLoaded = true;
+          updateBalanceUI();
+          setStatus('Демо-режим · Сделайте ставку!');
+          showToast('Демо: 100 000 очков');
+          return;
+        }
+        const { data, error } = await sb
+          .from('player_ratings')
+          .select('points')
+          .eq('telegram_id', tgUserId)
+          .maybeSingle();
+
+        if (error) throw error;
+        if (data && typeof data.points === 'number') {
+          credit = Math.floor(data.points);
+        } else {
+          // Создаём запись
+          credit = 10000;
+          await sb.from('player_ratings').upsert({
+            telegram_id: tgUserId,
+            points: credit
+          }, { onConflict: 'telegram_id' });
+        }
+        balanceLoaded = true;
+        updateBalanceUI();
+        setStatus('Сделайте ставку!');
+      } catch (e) {
+        console.error(e);
+        credit = 100000;
+        balanceLoaded = true;
+        updateBalanceUI();
+        setStatus('Офлайн-режим');
+        showToast('БД недоступна — офлайн');
+      } finally {
+        loadingOverlay.classList.remove('show');
+      }
+    }
+
+    async function settleBalance(bet, payout, net, gridSnapshot, isFS) {
+      if (!sb) return true;
+      try {
+        // Обновление очков
+        const { error: upErr } = await sb
+          .from('player_ratings')
+          .update({ points: Math.floor(credit) })
+          .eq('telegram_id', tgUserId);
+        if (upErr) throw upErr;
+
+        // История спинов
+        const { error: spinErr } = await sb.from('doghouse_spins').insert({
+          telegram_user_id: tgUserId,
+          total_bet: bet,
+          total_payout: payout,
+          net_result: net,
+          spins_won: payout > 0 ? 1 : 0,
+          is_free_spin: !!isFS,
+          bets_data: {
+            bet: bet,
+            payout: payout,
+            grid: gridSnapshot,
+            free_spins_left: freeSpinsLeft,
+            sticky: stickyWilds
+          }
+        });
+        if (spinErr) console.warn('spin save', spinErr);
+        return true;
+      } catch (e) {
+        console.error('settleBalance', e);
+        showToast('Ошибка сохранения');
+        return false;
+      }
     }
 
     async function spin() {
-      if (spinning) return;
+      if (spinning || !balanceLoaded) return;
 
       const isFS = inFreeSpins && freeSpinsLeft > 0;
       if (!isFS) {
         if (credit < totalBet) {
-          showToast('Insufficient balance');
+          showToast('Недостаточно очков');
           haptic('error');
           return;
         }
-        credit = +(credit - totalBet).toFixed(2);
+        credit = Math.floor(credit - totalBet);
         updateBalanceUI();
       } else {
         freeSpinsLeft--;
-        fsCounter.textContent = 'FREE SPINS: ' + freeSpinsLeft;
+        fsCounter.textContent = 'ФРИСПИНЫ: ' + freeSpinsLeft;
       }
 
       spinning = true;
@@ -982,7 +1105,8 @@
       btnSpin.classList.add('spinning');
       winDisplay.textContent = '';
       winDisplay.classList.remove('has-win');
-      setStatus(isFS ? 'Free Spin... (' + freeSpinsLeft + ' left)' : 'Good luck!');
+      heldBonusPositions = [];
+      setStatus(isFS ? ('Фриспин... (осталось ' + freeSpinsLeft + ')') : 'Удачи!');
       clearHighlights();
 
       const grid = [];
@@ -996,7 +1120,7 @@
             const sid = randomSymbol(r, isFS);
             let mult = null;
             if (sid === 'WILD') mult = Math.random() < 0.5 ? 2 : 3;
-            col.push({ id: sid, mult, sticky: false });
+            col.push({ id: sid, mult: mult, sticky: false });
           }
         }
         grid.push(col);
@@ -1013,23 +1137,37 @@
       }
       await Promise.all(animPromises);
 
+      // Запоминаем позиции бонусов для удержания визуала
+      for (let r = 0; r < REEL_COUNT; r++) {
+        for (let row = 0; row < ROWS; row++) {
+          if (grid[r][row].id === 'BONUS') {
+            heldBonusPositions.push({ reel: r, row: row });
+          }
+        }
+      }
+      markHeldBonuses();
+
       const result = evaluate(grid, isFS);
       const totalWin = result.totalWin;
-      const winningLines = result.winningLines;
       const bonusTriggered = result.bonusTriggered;
+      const betUsed = isFS ? 0 : totalBet;
+      const net = totalWin - betUsed;
 
       if (totalWin > 0) {
-        credit = +(credit + totalWin).toFixed(2);
-        winDisplay.textContent = 'WIN $' + totalWin.toFixed(2);
+        credit = Math.floor(credit + totalWin);
+        winDisplay.textContent = 'ВЫИГРЫШ ' + formatPoints(totalWin);
         winDisplay.classList.add('has-win');
-        setStatus('You won $' + totalWin.toFixed(2) + '!');
-        highlightWins(winningLines);
+        setStatus('Выигрыш ' + formatPoints(totalWin) + ' очков!');
+        highlightWins();
         haptic('success');
       } else {
-        setStatus(isFS ? 'No win' : 'Try again!');
+        setStatus(isFS ? 'Без выигрыша' : 'Попробуйте ещё!');
         if (!isFS) haptic('error');
       }
       updateBalanceUI();
+
+      // Сохранение в БД
+      await settleBalance(betUsed, totalWin, net, grid, isFS);
 
       if (isFS) {
         for (let r = 1; r <= 3; r++) {
@@ -1043,14 +1181,16 @@
 
       if (bonusTriggered && !isFS) {
         await startFreeSpins();
+      } else {
+        clearHeldBonuses();
       }
 
       if (isFS && freeSpinsLeft <= 0) {
         inFreeSpins = false;
         stickyWilds = {};
         fsCounter.classList.remove('show');
-        setStatus('Free Spins complete!');
-        showToast('Free Spins finished');
+        setStatus('Фриспины завершены!');
+        showToast('Бесплатные вращения окончены');
       }
 
       spinning = false;
@@ -1058,12 +1198,35 @@
       btnSpin.classList.remove('spinning');
 
       if (inFreeSpins && freeSpinsLeft > 0) {
-        setTimeout(function() { spin(); }, turbo ? 350 : 850);
+        setTimeout(function () { spin(); }, turbo ? 350 : 850);
       }
     }
 
+    function markHeldBonuses() {
+      // Подсветить видимые бонусные ячейки (последние 3 символа каждого барабана)
+      for (let i = 0; i < heldBonusPositions.length; i++) {
+        const pos = heldBonusPositions[i];
+        const inner = reelInners[pos.reel];
+        if (!inner) continue;
+        const symbols = inner.querySelectorAll('.symbol');
+        // Последние ROWS элементов — видимые
+        const visibleStart = symbols.length - ROWS;
+        const el = symbols[visibleStart + pos.row];
+        if (el && el.dataset.sym === 'BONUS') {
+          el.classList.add('bonus-hold');
+        }
+      }
+    }
+
+    function clearHeldBonuses() {
+      document.querySelectorAll('.symbol.bonus-hold').forEach(function (el) {
+        el.classList.remove('bonus-hold');
+      });
+      heldBonusPositions = [];
+    }
+
     function animateReel(reelIdx, resultCol, delay) {
-      return new Promise(function(resolve) {
+      return new Promise(function (resolve) {
         const inner = reelInners[reelIdx];
         inner.innerHTML = '';
         const stripLen = 28;
@@ -1089,7 +1252,6 @@
 
     function evaluate(grid, isFS) {
       let totalWin = 0;
-      const winningLines = [];
       let bonusCount = 0;
 
       for (const r of [0, 2, 4]) {
@@ -1112,7 +1274,8 @@
         }
 
         let target = null;
-        for (const s of symbols) {
+        for (let i = 0; i < symbols.length; i++) {
+          const s = symbols[i];
           if (s.id !== 'WILD' && s.id !== 'BONUS') {
             target = s.id;
             break;
@@ -1121,7 +1284,8 @@
         if (!target) continue;
 
         let count = 0;
-        for (const s of symbols) {
+        for (let i = 0; i < symbols.length; i++) {
+          const s = symbols[i];
           if (s.id === target || s.id === 'WILD') count++;
           else break;
         }
@@ -1133,28 +1297,31 @@
         let lineWin = payTable[count] * totalBet;
         if (wildMultSum > 0) lineWin *= wildMultSum;
         totalWin += lineWin;
-        winningLines.push({ lineIdx: li, positions: line.slice(0, count), count: count });
       }
 
-      return { totalWin: +totalWin.toFixed(2), winningLines: winningLines, bonusTriggered: bonusTriggered };
+      return {
+        totalWin: Math.floor(totalWin),
+        bonusTriggered: bonusTriggered
+      };
     }
 
-    function highlightWins(winningLines) {
-      reelElements.forEach(function(r) {
+    function highlightWins() {
+      reelElements.forEach(function (r) {
         r.style.boxShadow = 'inset 0 0 18px rgba(255,215,0,0.55)';
-        setTimeout(function() { r.style.boxShadow = ''; }, 1100);
+        setTimeout(function () { r.style.boxShadow = ''; }, 1100);
       });
     }
 
     function clearHighlights() {
-      document.querySelectorAll('.symbol.win-highlight').forEach(function(el) {
+      document.querySelectorAll('.symbol.win-highlight').forEach(function (el) {
         el.classList.remove('win-highlight');
       });
     }
 
     function startFreeSpins() {
-      return new Promise(function(resolve) {
+      return new Promise(function (resolve) {
         stickyWilds = {};
+        // Бонусы остаются подсвеченными под полупрозрачным оверлеем
         fsOverlay.classList.add('show');
         const gridEl = document.getElementById('fsGrid');
         gridEl.innerHTML = '';
@@ -1175,20 +1342,21 @@
         let idx = 0;
         function reveal() {
           if (idx >= 9) {
-            document.getElementById('fsTotal').textContent = 'Total: ' + total + ' Free Spins';
-            setTimeout(function() {
+            document.getElementById('fsTotal').textContent = 'Итого: ' + total + ' фриспинов';
+            setTimeout(function () {
               fsOverlay.classList.remove('show');
+              clearHeldBonuses();
               freeSpinsLeft = total;
               inFreeSpins = true;
-              fsCounter.textContent = 'FREE SPINS: ' + freeSpinsLeft;
+              fsCounter.textContent = 'ФРИСПИНЫ: ' + freeSpinsLeft;
               fsCounter.classList.add('show');
-              showToast(total + ' Free Spins awarded!');
+              showToast(total + ' бесплатных вращений!');
               haptic('success');
-              setTimeout(function() {
+              setTimeout(function () {
                 spin();
                 resolve();
               }, 550);
-            }, 1100);
+            }, 1200);
             return;
           }
           const cell = cells[idx];
@@ -1201,75 +1369,68 @@
       });
     }
 
-    btnSpin.addEventListener('click', function() { spin(); });
+    // Ставка
+    function changeBet(dir) {
+      let idx = BET_STEPS.indexOf(totalBet);
+      if (idx < 0) {
+        // найти ближайший
+        idx = 0;
+        for (let i = 0; i < BET_STEPS.length; i++) {
+          if (BET_STEPS[i] <= totalBet) idx = i;
+        }
+      }
+      idx += dir;
+      if (idx < 0) idx = 0;
+      if (idx >= BET_STEPS.length) idx = BET_STEPS.length - 1;
+      totalBet = BET_STEPS[idx];
+      if (totalBet > MAX_BET) totalBet = MAX_BET;
+      if (totalBet < MIN_BET) totalBet = MIN_BET;
+      updateBalanceUI();
+    }
 
-    document.getElementById('btnInfo').addEventListener('click', function() {
+    // События
+    btnSpin.addEventListener('click', function () { spin(); });
+
+    document.getElementById('btnInfo').addEventListener('click', function () {
       document.getElementById('modalInfo').classList.add('show');
     });
-    document.getElementById('btnBet').addEventListener('click', function() {
+    document.getElementById('btnBet').addEventListener('click', function () {
       if (spinning || inFreeSpins) return;
       document.getElementById('modalBet').classList.add('show');
     });
-    document.getElementById('btnMenu').addEventListener('click', function() {
+    document.getElementById('btnMenu').addEventListener('click', function () {
       document.getElementById('modalMenu').classList.add('show');
     });
-    document.getElementById('btnAuto').addEventListener('click', function() {
-      showToast('Autoplay — coming soon');
+    document.getElementById('btnAuto').addEventListener('click', function () {
+      showToast('Автоигра скоро');
     });
 
-    document.querySelectorAll('[data-close]').forEach(function(btn) {
-      btn.addEventListener('click', function() {
+    document.querySelectorAll('[data-close]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
         document.getElementById(btn.dataset.close).classList.remove('show');
       });
     });
-    document.querySelectorAll('.modal-overlay').forEach(function(ov) {
-      ov.addEventListener('click', function(e) {
+    document.querySelectorAll('.modal-overlay').forEach(function (ov) {
+      ov.addEventListener('click', function (e) {
         if (e.target === ov) ov.classList.remove('show');
       });
     });
 
-    document.getElementById('cplPlus').addEventListener('click', function() {
-      if (coinsPerLine < 10) { coinsPerLine++; recalcBet(); }
-    });
-    document.getElementById('cplMinus').addEventListener('click', function() {
-      if (coinsPerLine > 1) { coinsPerLine--; recalcBet(); }
-    });
-    const coinValues = [0.01, 0.02, 0.05, 0.10, 0.20, 0.50, 1.00];
-    document.getElementById('cvPlus').addEventListener('click', function() {
-      const i = coinValues.indexOf(coinValue);
-      if (i < coinValues.length - 1) { coinValue = coinValues[i + 1]; recalcBet(); }
-    });
-    document.getElementById('cvMinus').addEventListener('click', function() {
-      const i = coinValues.indexOf(coinValue);
-      if (i > 0) { coinValue = coinValues[i - 1]; recalcBet(); }
-    });
-    document.getElementById('tbPlus').addEventListener('click', function() {
-      if (coinsPerLine < 10) { coinsPerLine++; recalcBet(); }
-      else {
-        const i = coinValues.indexOf(coinValue);
-        if (i < coinValues.length - 1) { coinValue = coinValues[i + 1]; recalcBet(); }
-      }
-    });
-    document.getElementById('tbMinus').addEventListener('click', function() {
-      if (coinsPerLine > 1) { coinsPerLine--; recalcBet(); }
-      else {
-        const i = coinValues.indexOf(coinValue);
-        if (i > 0) { coinValue = coinValues[i - 1]; recalcBet(); }
-      }
-    });
-    document.getElementById('betMax').addEventListener('click', function() {
-      coinsPerLine = 10;
-      coinValue = 1.00;
-      recalcBet();
+    document.getElementById('betPlus').addEventListener('click', function () { changeBet(1); });
+    document.getElementById('betMinus').addEventListener('click', function () { changeBet(-1); });
+    document.getElementById('betMax').addEventListener('click', function () {
+      totalBet = MAX_BET;
+      updateBalanceUI();
     });
 
-    document.getElementById('chkTurbo').addEventListener('change', function(e) {
+    document.getElementById('chkTurbo').addEventListener('change', function (e) {
       turbo = e.target.checked;
     });
 
+    // Старт
     buildReels();
     updateBalanceUI();
-    setStatus('Place your bets!');
+    setStatus('Загрузка...');
 
     for (let r = 0; r < REEL_COUNT; r++) {
       const col = [];
@@ -1281,11 +1442,13 @@
       for (let i = 0; i < 10; i++) {
         inner.appendChild(createSymbolEl(randomSymbol(r), r));
       }
-      for (const cell of col) {
-        inner.appendChild(createSymbolEl(cell.id, r, cell.mult));
+      for (let i = 0; i < col.length; i++) {
+        inner.appendChild(createSymbolEl(col[i].id, r, col[i].mult));
       }
       inner.style.transform = 'translateY(' + (-10 * SYMBOL_H) + 'px)';
     }
+
+    loadBalance();
   </script>
 </body>
 </html>
